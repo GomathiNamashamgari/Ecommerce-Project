@@ -25,6 +25,9 @@ public class JwtProvider {
         key = Keys.hmacShaKeyFor(secret.getBytes());
     }
 
+    // ============================
+    // GENERATE JWT TOKEN
+    // ============================
     public String generateToken(Authentication auth) {
         String email = auth.getName();
         String role = auth.getAuthorities().stream()
@@ -36,23 +39,26 @@ public class JwtProvider {
                 .setSubject(email)
                 .claim("role", role)
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + 1000L * 60 * 60 * 24)) // 24 hours
+                .setExpiration(new Date(System.currentTimeMillis() + (1000L * 60 * 60 * 24))) // 24 hrs
                 .signWith(key)
                 .compact();
     }
 
-    // FIXED METHOD — HANDLES "Bearer " AND SPACES
+    // ============================
+    // EXTRACT EMAIL (SUBJECT)
+    // FIXED → Handles "Bearer ", null, spaces
+    // ============================
     public String getEmailFromJwtToken(String jwt) {
         if (jwt == null || jwt.isBlank()) {
             throw new RuntimeException("JWT token is missing or empty");
         }
 
-        // Remove "Bearer " prefix if present
+        // Remove Bearer prefix
         if (jwt.toLowerCase().startsWith("bearer ")) {
             jwt = jwt.substring(7);
         }
 
-        // TRIM ANY WHITESPACE (THIS FIXES YOUR ERROR)
+        // Trim spaces
         jwt = jwt.trim();
 
         if (jwt.isEmpty()) {
@@ -65,25 +71,34 @@ public class JwtProvider {
                     .build()
                     .parseClaimsJws(jwt)
                     .getBody();
+
             return claims.getSubject();
+
         } catch (Exception e) {
             throw new RuntimeException("Invalid JWT token: " + e.getMessage(), e);
         }
     }
 
-    // Optional: Keep if used elsewhere
+    // ============================
+    // EXTRACT ROLE FROM JWT TOKEN
+    // ============================
     public String getRoleFromToken(String jwt) {
+        if (jwt == null || jwt.isBlank()) return null;
+
+        // Remove Bearer prefix if present
+        if (jwt.toLowerCase().startsWith("bearer ")) {
+            jwt = jwt.substring(7).trim();
+        }
+
         try {
-            String cleanJwt = jwt;
-            if (jwt != null && jwt.toLowerCase().startsWith("bearer ")) {
-                cleanJwt = jwt.substring(7).trim();
-            }
             Claims claims = Jwts.parserBuilder()
                     .setSigningKey(key)
                     .build()
-                    .parseClaimsJws(cleanJwt)
+                    .parseClaimsJws(jwt)
                     .getBody();
+
             return claims.get("role", String.class);
+
         } catch (Exception e) {
             return null;
         }

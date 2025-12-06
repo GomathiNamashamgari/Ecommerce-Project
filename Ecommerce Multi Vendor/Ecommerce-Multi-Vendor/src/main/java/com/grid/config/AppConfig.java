@@ -4,6 +4,7 @@ import com.grid.repository.UserRepository;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -11,6 +12,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -35,56 +37,33 @@ public class AppConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                // Enable CORS
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-
-                // Disable CSRF for JWT stateless API
-                .csrf(csrf -> csrf.disable())
-
-                // Stateless session
+                .csrf(csrf -> csrf.disable())  // Disable first
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-
-                // Add JWT filter
-                .addFilterBefore(jwtTokenValidator, UsernamePasswordAuthenticationFilter.class)
-
-                // Authorization rules
+                .exceptionHandling(ex -> ex.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
+                .addFilterBefore(jwtTokenValidator, UsernamePasswordAuthenticationFilter.class)  // Add filter early
                 .authorizeHttpRequests(auth -> auth
-                        // Public endpoints
-                        .requestMatchers(
-                                "/sellers/login",
-                                "/sellers/signup",
-                                "/sellers/verify/**",
-                                "/products/**",
-                                "/auth/**",
-                                "/sellers/products/search",
-                                "/payment-success/**",
-                                "/home/**",
-                                "/{path:[^\\.]*}"
-                        ).permitAll()
-
-                        // Admin only
+                        // Public
+                        .requestMatchers("/auth/**", "/sellers/login", "/sellers/signup", "/sellers/verify/**", "/products/**", "/home/**", "/payment-success/**", "/{path:[^\\.]*}").permitAll()
+                        // Protected
                         .requestMatchers("/admin/**").hasRole("ADMIN")
-
-                        // Seller only
                         .requestMatchers("/sellers/profile").hasRole("SELLER")
                         .requestMatchers(HttpMethod.POST, "/sellers/products").hasRole("SELLER")
                         .requestMatchers(HttpMethod.PUT, "/sellers/products/**").hasRole("SELLER")
                         .requestMatchers(HttpMethod.DELETE, "/sellers/products/**").hasRole("SELLER")
-
-                        // Authenticated users
                         .requestMatchers("/users/profile").authenticated()
-
-                        // All other requests require authentication
+                        .requestMatchers("/orders/user").authenticated()
                         .anyRequest().authenticated()
                 );
 
         return http.build();
     }
 
+    // CORS (your version is perfect)
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration cfg = new CorsConfiguration();
-        cfg.setAllowedOrigins(Arrays.asList("http://localhost:3000")); // Update for production
+        cfg.setAllowedOriginPatterns(Arrays.asList("*"));  // Good for dev
         cfg.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         cfg.setAllowedHeaders(Arrays.asList("*"));
         cfg.setAllowCredentials(true);

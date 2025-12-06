@@ -1,0 +1,20 @@
+# Maven target folder
+/target/
+
+# IDE files
+/.idea/
+/*.iml
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Spring Boot temporary files
+spring.log
+
+# Ignore Maven wrapper jar if present
+/mvnw.cmd
+/mvnw

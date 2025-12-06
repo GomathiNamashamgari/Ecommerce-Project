@@ -3,7 +3,7 @@ package com.grid.config;
 import com.grid.modal.User;
 import com.grid.modal.Seller;
 import com.grid.repository.UserRepository;
-import com.grid.service.SellerService;
+import com.grid.repository.SellerRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -13,7 +13,6 @@ import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
@@ -31,7 +30,7 @@ public class JwtTokenValidator extends OncePerRequestFilter {
 
     private final JwtProvider jwtProvider;
     private final UserRepository userRepository;
-    private final SellerService sellerService;
+    private final SellerRepository sellerRepository; // <- IMPORTANT CHANGE
     private final EntityManager entityManager;
 
     @Override
@@ -49,62 +48,58 @@ public class JwtTokenValidator extends OncePerRequestFilter {
                 String email = jwtProvider.getEmailFromJwtToken(jwt);
                 String roleFromToken = jwtProvider.getRoleFromToken(jwt);
 
-                if (email != null && roleFromToken != null &&
-                        SecurityContextHolder.getContext().getAuthentication() == null) {
+                if (email == null || roleFromToken == null) {
+                    throw new RuntimeException("JWT missing email or role");
+                }
 
-                    // Normalize role -> ADMIN, SELLER, USER
+                if (SecurityContextHolder.getContext().getAuthentication() == null) {
+
                     String cleanRole = roleFromToken.toUpperCase().replace("ROLE_", "");
-
-                    List<GrantedAuthority> authorities =
+                    List<SimpleGrantedAuthority> authorities =
                             List.of(new SimpleGrantedAuthority("ROLE_" + cleanRole));
 
-                    Object principal = null;
+                    Object principal = switch (cleanRole) {
+                        case "USER", "ADMIN" -> userRepository.findByEmail(email);
+                        case "SELLER" -> sellerRepository.findByEmail(email);
+                        default -> throw new RuntimeException("Unknown role: " + cleanRole);
+                    };
 
-                    switch (cleanRole) {
-
-                        case "USER":
-                            principal = userRepository.findByEmail(email);
-                            if (principal != null) entityManager.detach(principal);
-                            break;
-
-                        case "SELLER":
-                            principal = sellerService.getSellerByEmail(email);
-                            if (principal != null) entityManager.detach(principal);
-                            break;
-
-                        case "ADMIN":
-                            // Admin likely stored in User table
-                            principal = userRepository.findByEmail(email);
-                            if (principal != null) entityManager.detach(principal);
-                            break;
-
-                        default:
-                            logger.warn("Unknown role in JWT: {}", cleanRole);
+                    if (principal == null) {
+                        throw new RuntimeException("No user found for email: " + email);
                     }
 
-                    if (principal != null) {
-                        UsernamePasswordAuthenticationToken auth =
-                                new UsernamePasswordAuthenticationToken(
-                                        principal,
-                                        null,
-                                        authorities
-                                );
+                    entityManager.detach(principal);
 
-                        auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                        SecurityContextHolder.getContext().setAuthentication(auth);
+                    UsernamePasswordAuthenticationToken authToken =
+                            new UsernamePasswordAuthenticationToken(principal, null, authorities);
+                    authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    SecurityContextHolder.getContext().setAuthentication(authToken);
 
-                        logger.info("JWT authentication successful: {} with role {}", email, cleanRole);
-                    } else {
-                        logger.warn("No principal found for email: {}", email);
-                    }
+                    logger.info("JWT OK: {} → {}", email, cleanRole);
                 }
 
             } catch (Exception e) {
-                logger.warn("Invalid JWT token: {}", e.getMessage());
+                logger.warn("JWT validation failed: {}", e.getMessage());
                 SecurityContextHolder.clearContext();
+                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid JWT token");
+                return;
             }
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        String path = request.getServletPath();
+
+        return path.startsWith("/auth")
+                || path.startsWith("/sellers/login")
+                || path.startsWith("/sellers/signup")
+                || path.startsWith("/sellers/verify")
+                || path.startsWith("/products")
+                || path.startsWith("/payment-success")
+                || path.startsWith("/home");
+               // || path.matches("^/[^.]*$");
     }
 }
