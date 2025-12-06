@@ -14,9 +14,10 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.Collections;
+import java.util.Arrays;
 
 @Configuration
 @EnableWebSecurity
@@ -24,64 +25,75 @@ import java.util.Collections;
 public class AppConfig {
 
     private final UserRepository userRepository;
+    private final JwtTokenValidator jwtTokenValidator;
 
-    public AppConfig(UserRepository userRepository) {
+    public AppConfig(UserRepository userRepository, JwtTokenValidator jwtTokenValidator) {
         this.userRepository = userRepository;
+        this.jwtTokenValidator = jwtTokenValidator;
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtTokenValidator jwtTokenValidator) throws Exception {
-
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+                // Enable CORS
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+
+                // Disable CSRF for JWT stateless API
                 .csrf(csrf -> csrf.disable())
+
+                // Stateless session
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+
+                // Add JWT filter
+                .addFilterBefore(jwtTokenValidator, UsernamePasswordAuthenticationFilter.class)
+
+                // Authorization rules
                 .authorizeHttpRequests(auth -> auth
                         // Public endpoints
-                        .requestMatchers("/sellers/login", "/sellers/signup").permitAll()
-                        .requestMatchers("/products/**", "/auth/**").permitAll()
-                        .requestMatchers("/sellers/verify/**").permitAll()
-                        .requestMatchers("/sellers/products/search").permitAll()
-                        .requestMatchers("/payment-success/**").permitAll()
+                        .requestMatchers(
+                                "/sellers/login",
+                                "/sellers/signup",
+                                "/sellers/verify/**",
+                                "/products/**",
+                                "/auth/**",
+                                "/sellers/products/search",
+                                "/payment-success/**",
+                                "/home/**",
+                                "/{path:[^\\.]*}"
+                        ).permitAll()
 
-                        .requestMatchers("/{path:[^\\.]*}").permitAll()
-
-                        // ============================
-                        // 🔥 ADMIN PROTECTED ENDPOINTS
-                        // ============================
+                        // Admin only
                         .requestMatchers("/admin/**").hasRole("ADMIN")
 
-                        // Seller protected endpoints
+                        // Seller only
                         .requestMatchers("/sellers/profile").hasRole("SELLER")
                         .requestMatchers(HttpMethod.POST, "/sellers/products").hasRole("SELLER")
                         .requestMatchers(HttpMethod.PUT, "/sellers/products/**").hasRole("SELLER")
                         .requestMatchers(HttpMethod.DELETE, "/sellers/products/**").hasRole("SELLER")
 
+                        // Authenticated users
                         .requestMatchers("/users/profile").authenticated()
 
-                        // Everything else
-                        .anyRequest().permitAll()
+                        // All other requests require authentication
+                        .anyRequest().authenticated()
                 );
-
-
-        // JWT filter before Spring Security auth
-        http.addFilterBefore(jwtTokenValidator, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
-        return request -> {
-            CorsConfiguration cfg = new CorsConfiguration();
-            cfg.setAllowedOrigins(Collections.singletonList("http://localhost:3000"));
-            cfg.setAllowedMethods(Collections.singletonList("*"));
-            cfg.setAllowedHeaders(Collections.singletonList("*"));
-            cfg.setAllowCredentials(true);
-            cfg.setExposedHeaders(Collections.singletonList("Authorization"));
-            cfg.setMaxAge(3600L);
-            return cfg;
-        };
+        CorsConfiguration cfg = new CorsConfiguration();
+        cfg.setAllowedOrigins(Arrays.asList("http://localhost:3000")); // Update for production
+        cfg.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        cfg.setAllowedHeaders(Arrays.asList("*"));
+        cfg.setAllowCredentials(true);
+        cfg.setExposedHeaders(Arrays.asList("Authorization"));
+        cfg.setMaxAge(3600L);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", cfg);
+        return source;
     }
 
     @Bean
