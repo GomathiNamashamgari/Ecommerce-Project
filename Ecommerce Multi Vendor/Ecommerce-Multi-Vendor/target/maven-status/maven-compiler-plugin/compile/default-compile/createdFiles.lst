@@ -114,5 +114,4 @@ com\grid\Exception\GlobalException.class
 com\grid\domain\PaymentOrderStatus.class
 com\grid\response\PaymentLinkResponse.class
 com\grid\config\JwtTokenValidator.class
-com\grid\Ecommerce\Multi\Vendor\EcommerceMultiVendorApplication.class
 com\grid\repository\PaymentOrderRepository.class
