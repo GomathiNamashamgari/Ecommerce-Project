@@ -1,0 +1,50 @@
+export const electronicsLevelThree = [
+  { name: "Mi", categoryId: "electronics_mobiles_mi",parentCategoryName: "Mobiles", parentCategoryId: "electronics_mobiles", level: 3 },
+  { name: "Realme", categoryId: "electronics_mobiles_realme",parentCategoryName: "Mobiles", parentCategoryId: "electronics_mobiles", level: 3 },
+  { name: "Samsung", categoryId: "electronics_mobiles_samsung",parentCategoryName: "Mobiles", parentCategoryId: "electronics_mobiles", level: 3 },
+  { name: "Infinix", categoryId: "electronics_mobiles_infinix",parentCategoryName: "Mobiles", parentCategoryId: "electronics_mobiles", level: 3 },
+  { name: "OPPO", categoryId: "electronics_mobiles_oppo",parentCategoryName: "Mobiles", parentCategoryId: "electronics_mobiles", level: 3 },
+  { name: "Apple", categoryId: "electronics_mobiles_apple",parentCategoryName: "Mobiles", parentCategoryId: "electronics_mobiles", level: 3 },
+  { name: "Vivo", categoryId: "electronics_mobiles_vivo",parentCategoryName: "Mobiles", parentCategoryId: "electronics_mobiles", level: 3 },
+  { name: "Honor", categoryId: "electronics_mobiles_honor",parentCategoryName: "Mobiles", parentCategoryId: "electronics_mobiles", level: 3 },
+  { name: "Asus", categoryId: "electronics_mobiles_asus",parentCategoryName: "Mobiles", parentCategoryId: "electronics_mobiles", level: 3 },
+  { name: "Poco X2", categoryId: "electronics_mobiles_pocox2",parentCategoryName: "Mobiles", parentCategoryId: "electronics_mobiles", level: 3 },
+  { name: "realme Narzo 10", categoryId: "electronics_mobiles_realme_narzo10",parentCategoryName: "Mobiles", parentCategoryId: "electronics_mobiles", level: 3 },
+  { name: "Infinix Hot 9", categoryId: "electronics_mobiles_infinix_hot9",parentCategoryName: "Mobiles", parentCategoryId: "electronics_mobiles", level: 3 },
+  { name: "IQOO 3", categoryId: "electronics_mobiles_iqoo3",parentCategoryName: "Mobiles", parentCategoryId: "electronics_mobiles", level: 3 },
+  
+  { name: "Mobile Cases", categoryId: "electronics_mobile_cases",parentCategoryName: "Mobile Accessories", parentCategoryId: "electronics_mobile_accessories", level: 3 },
+  { name: "Headphones & Headsets", categoryId: "electronics_headphones_headsets",parentCategoryName: "Mobile Accessories", parentCategoryId: "electronics_mobile_accessories", level: 3 },
+  { name: "Power Banks", categoryId: "electronics_power_banks",parentCategoryName: "Mobile Accessories", parentCategoryId: "electronics_mobile_accessories", level: 3 },
+  { name: "Screenguards", categoryId: "electronics_screenguards",parentCategoryName: "Mobile Accessories", parentCategoryId: "electronics_mobile_accessories", level: 3 },
+  { name: "Memory Cards", categoryId: "electronics_memory_cards",parentCategoryName: "Mobile Accessories", parentCategoryId: "electronics_mobile_accessories", level: 3 },
+  { name: "Smart Headphones", categoryId: "electronics_smart_headphones",parentCategoryName: "Mobile Accessories", parentCategoryId: "electronics_mobile_accessories", level: 3 },
+  { name: "Mobile Cables", categoryId: "electronics_mobile_cables",parentCategoryName: "Mobile Accessories", parentCategoryId: "electronics_mobile_accessories", level: 3 },
+  { name: "Mobile Chargers", categoryId: "electronics_mobile_chargers",parentCategoryName: "Mobile Accessories", parentCategoryId: "electronics_mobile_accessories", level: 3 },
+  { name: "Mobile Holders", categoryId: "electronics_mobile_holders",parentCategoryName: "Mobile Accessories", parentCategoryId: "electronics_mobile_accessories", level: 3 },
+
+  { name: "Smart Watches", categoryId: "electronics_smart_watches",parentCategoryName: "Smart Wearable Tech", parentCategoryId: "electronics_smart_wearable_tech", level: 3 },
+  { name: "Smart Glasses (VR)", categoryId: "electronics_smart_glasses_vr",parentCategoryName: "Smart Wearable Tech", parentCategoryId: "electronics_smart_wearable_tech", level: 3 },
+  { name: "Smart Bands", categoryId: "electronics_smart_bands",parentCategoryName: "Smart Wearable Tech", parentCategoryId: "electronics_smart_wearable_tech", level: 3 },
+
+  { name: "Gaming Laptops", categoryId: "electronics_gaming_laptops",parentCategoryName: "Laptops", parentCategoryId: "electronics_laptops", level: 3 },
+  { name: "Desktop PCs", categoryId: "electronics_desktop_pcs",parentCategoryName: "Laptops", parentCategoryId: "electronics_laptops", level: 3 },
+  { name: "Gaming & Accessories", categoryId: "electronics_gaming_accessories",parentCategoryName: "Laptops", parentCategoryId: "electronics_laptops", level: 3 },
+  { name: "Computer Accessories", categoryId: "electronics_computer_accessories",parentCategoryName: "Laptops", parentCategoryId: "electronics_laptops", level: 3 },
+  { name: "External Hard Disks", categoryId: "electronics_external_hard_disks",parentCategoryName: "Laptops", parentCategoryId: "electronics_laptops", level: 3 },
+  { name: "Pendrives", categoryId: "electronics_pendrives",parentCategoryName: "Laptops", parentCategoryId: "electronics_laptops", level: 3 },
+  { name: "Laptop Skins & Decals", categoryId: "electronics_laptop_skins_decals",parentCategoryName: "Laptops", parentCategoryId: "electronics_laptops", level: 3 },
+  { name: "Laptop Bags", categoryId: "electronics_laptop_bags",parentCategoryName: "Laptops", parentCategoryId: "electronics_laptops", level: 3 },
+  { name: "Mouse", categoryId: "electronics_mouse",parentCategoryName: "Laptops", parentCategoryId: "electronics_laptops", level: 3 },
+  { name: "Computer Peripherals", categoryId: "electronics_computer_peripherals",parentCategoryName: "Laptops", parentCategoryId: "electronics_laptops", level: 3 },
+  { name: "Printers & Ink Cartridges", categoryId: "electronics_printers_ink_cartridges",parentCategoryName: "Laptops", parentCategoryId: "electronics_laptops", level: 3 },
+  { name: "Monitors", categoryId: "electronics_monitors",parentCategoryName: "Laptops", parentCategoryId: "electronics_laptops", level: 3 },
+
+  { name: "Apple iPads", categoryId: "electronics_apple_ipads",parentCategoryName: "Tablets", parentCategoryId: "electronics_tablets", level: 3 },
+
+  { name: "Bluetooth Speakers", categoryId: "audio_bluetooth_speakers", parentCategoryName: "Audio Devices",parentCategoryId: "electronics_audio", level: 3 },
+  { name: "Headphones & Earphones", categoryId: "audio_headphones",parentCategoryName: "Audio Devices", parentCategoryId: "electronics_audio", level: 3 },
+
+  { name: "Gaming Consoles", categoryId: "gaming_consoles",parentCategoryName: "Gaming", parentCategoryId: "electronics_gaming", level: 3 },
+  { name: "Gaming Accessories", categoryId: "gaming_accessories",parentCategoryName: "Gaming", parentCategoryId: "electronics_gaming", level: 3 }
+];

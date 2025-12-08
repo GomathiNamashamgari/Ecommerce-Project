@@ -1,0 +1,24 @@
+# Ignore node_modules and IDE files everywhere
+node_modules/
+*.log
+*.idea/
+*.DS_Store
+
+# Except the frontend folder
+!/ecommerce-app/
+
+# Inside ecommerce-app, ignore node_modules, build, and IDE files
+ecommerce-app/node_modules/
+ecommerce-app/.pnp
+ecommerce-app/.pnp.js
+ecommerce-app/coverage
+ecommerce-app/build
+ecommerce-app/.DS_Store
+ecommerce-app/.env.local
+ecommerce-app/.env.development.local
+ecommerce-app/.env.test.local
+ecommerce-app/.env.production.local
+ecommerce-app/npm-debug.log*
+ecommerce-app/yarn-debug.log*
+ecommerce-app/yarn-error.log*
+ecommerce-app/.idea/
