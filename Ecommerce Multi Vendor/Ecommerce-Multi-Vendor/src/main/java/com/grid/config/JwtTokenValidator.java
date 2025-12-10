@@ -58,11 +58,30 @@ public class JwtTokenValidator extends OncePerRequestFilter {
                     List<SimpleGrantedAuthority> authorities =
                             List.of(new SimpleGrantedAuthority("ROLE_" + cleanRole));
 
-                    Object principal = switch (cleanRole) {
-                        case "USER", "ADMIN" -> userRepository.findByEmail(email);
-                        case "SELLER" -> sellerRepository.findByEmail(email);
-                        default -> throw new RuntimeException("Unknown role: " + cleanRole);
-                    };
+                    Object principal;
+                    switch (cleanRole) {
+                        case "USER", "ADMIN":
+                            principal = userRepository.findByEmail(email);
+                            if (principal == null) {
+                                // Virtual user
+                                principal = new User();
+                                ((User) principal).setEmail(email);
+                                ((User) principal).setFullName("Guest User");
+                            }
+                            break;
+                        case "SELLER":
+                            principal = sellerRepository.findByEmail(email);
+                            if (principal == null) {
+                                // Virtual seller
+                                principal = new Seller();
+                                ((Seller) principal).setEmail(email);
+                                ((Seller) principal).setSellerName("Guest Seller");
+                            }
+                            break;
+                        default:
+                            throw new RuntimeException("Unknown role: " + cleanRole);
+                    }
+
 
                     if (principal == null) {
                         throw new RuntimeException("No user found for email: " + email);

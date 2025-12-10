@@ -24,11 +24,10 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -42,32 +41,39 @@ public class AuthServiceImpl implements AuthService {
     private final SellerService sellerService;
     private final VerificationCodeRepository verificationCodeRepository;
     private final EmailService emailService;
-    private final CustomerUserServiceImpl customerUserService;
+    private final PasswordEncoder passwordEncoder;
 
     private static final Logger log = LoggerFactory.getLogger(AuthServiceImpl.class);
 
-    // ------------------- Send OTP -------------------
-    @Transactional
+    // -------------------------------------------------------
+    // SEND OTP
+    // -------------------------------------------------------
     @Override
+    @Transactional
     public void sentLoginOtp(String email) throws Exception {
+
         email = email.trim().toLowerCase();
         verificationCodeRepository.deleteAllByEmail(email);
 
         String otp = OtpUtil.generateOtp();
+
         VerificationCode code = new VerificationCode();
         code.setEmail(email);
         code.setOtp(otp);
         verificationCodeRepository.save(code);
 
-        String subject = "OTP Verification";
-        String text = "Your OTP for Grid login/signup is: " + otp;
-        String url = "http://localhost:5424/verify/";
-        emailService.sendVerificationOtpEmail(email, otp, subject, text, url);
+        emailService.sendVerificationOtpEmail(email, otp,
+                "OTP Verification",
+                "Your OTP for Grid login/signup is: " + otp,
+                "http://localhost:5424/verify/"
+        );
 
         log.info("OTP sent to {}", email);
     }
 
-    // ------------------- Signup -------------------
+    // -------------------------------------------------------
+    // SIGNUP (OTP + USER CREATION)
+    // -------------------------------------------------------
     @Override
     public String createUser(SignupRequest req) throws Exception {
         List<VerificationCode> codes = verificationCodeRepository.findAllByEmail(req.getEmail());
@@ -102,65 +108,79 @@ public class AuthServiceImpl implements AuthService {
         return jwtProvider.generateToken(authentication);
     }
 
-    // ------------------- Login -------------------
-    @Transactional
+
+
+    // -------------------------------------------------------
+    // LOGIN (OTP)
+    // -------------------------------------------------------
     @Override
+    @Transactional
     public AuthResponse signin(LoginRequest req) throws Exception {
-        String email = req.getEmail();
+        String email = req.getEmail().trim().toLowerCase();
         String otp = req.getOtp();
 
+        // OTP Authentication
         Authentication authentication = authenticate(email, otp);
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
+        // Save user if not exists
+        User user = userRepository.findByEmail(email);
+        if (user == null) {
+            user = new User();
+            user.setEmail(email);
+            user.setFullName("Guest User"); // or from request if available
+            user.setMobile("");
+            user = userRepository.save(user);
+
+            // Create cart for new user
+            Cart cart = new Cart();
+            cart.setUser(user);
+            cartRepository.save(cart);
+        }
+
+        // Generate JWT
         String token = jwtProvider.generateToken(authentication);
 
         AuthResponse authResponse = new AuthResponse();
         authResponse.setJwt(token);
         authResponse.setMessage("Login successful via OTP");
 
-        // Determine role from DB as enum
-        USER_ROLE userRole = null;
-        if (userRepository.findByEmail(email) != null) {
-            userRole = USER_ROLE.ROLE_USER;
-        } else if (sellerService.getSellerByEmail(email) != null) {
-            userRole = USER_ROLE.ROLE_SELLER;
-        }
-        authResponse.setRole(userRole);
+        authResponse.setRole(USER_ROLE.ROLE_USER);
 
         return authResponse;
     }
 
-    // ------------------- Authenticate OTP -------------------
-    // ... (rest of the file remains the same)
 
-    // ------------------- Authenticate OTP -------------------
+
+    // -------------------------------------------------------
+    // INTERNAL OTP AUTH
+    // -------------------------------------------------------
     private Authentication authenticate(String email, String otp) throws Exception {
         List<VerificationCode> codes = verificationCodeRepository.findAllByEmail(email);
+
         if (codes.isEmpty()) {
             throw new BadCredentialsException("No OTP sent. Please request OTP first.");
         }
 
         VerificationCode code = codes.get(codes.size() - 1);
+
         if (!code.getOtp().equals(otp)) {
             throw new BadCredentialsException("Invalid OTP");
         }
 
+        // Delete the used OTP
         verificationCodeRepository.delete(code);
 
-        // Check if user or seller exists
-        USER_ROLE role;
-        if (userRepository.findByEmail(email) != null) {
-            role = USER_ROLE.ROLE_USER;
-        } else if (sellerService.getSellerByEmail(email) != null) {
-            role = USER_ROLE.ROLE_SELLER;
-        } else {
-            throw new BadCredentialsException("Email not registered");
-        }
+        // Always allow login, even if user/seller not registered
+        USER_ROLE role = USER_ROLE.ROLE_USER; // default role for unknown emails
 
         Collection<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(role.toString()));
 
         log.info("OTP validated for {}: received={}, expected={}", email, otp, code.getOtp());
-        // FIX: Use email (string) as principal, not the entity object
+
+        // Use email as principal
         return new UsernamePasswordAuthenticationToken(email, null, authorities);
     }
+
+
 }

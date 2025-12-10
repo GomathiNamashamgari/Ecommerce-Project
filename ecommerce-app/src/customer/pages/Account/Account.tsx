@@ -4,6 +4,7 @@ import { useDispatch } from "react-redux";
 import { Routes, Route } from "react-router-dom";
 import { useLocation, useNavigate } from "react-router-dom";
 import { logout } from "../../../State/AuthSlice";
+import { useAppSelector } from "../../../State/Store";
 import Address from "./Address";
 import OrderDetails from "./OrderDetails";
 import Orders from "./Orders";
@@ -17,6 +18,7 @@ const menu = [
   { name: "Logout", path: "/" },
 ];
 const Account = () => {
+  const { auth } = useAppSelector(store=>store)
   const navigate = useNavigate();
   const location = useLocation();
   const dispatch=useDispatch();
@@ -33,7 +35,7 @@ const Account = () => {
   return (
     <div className="px-5 lg:px-52 min-h-screen mt-10">
       <div>
-        <h1 className="text-xl font-bold pb-5">Chikki</h1>
+        <h1 className="text-xl font-bold pb-5">{auth.user?.fullName || " "}</h1>
       </div>
       <Divider />
 

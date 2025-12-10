@@ -1,12 +1,12 @@
 import { Button, TextField, CircularProgress } from '@mui/material';
 import { useFormik } from 'formik';
-import React from 'react'
+import React from 'react';
 import { sendLoginSignupOtp, signin } from '../../../State/AuthSlice';
 import { useAppDispatch, useAppSelector } from '../../../State/Store';
 
 const LoginForm = () => {
   const dispatch = useAppDispatch();
-  const {auth}=useAppSelector(store=>store)
+  const { auth } = useAppSelector((store) => store);
 
   const formik = useFormik({
     initialValues: {
@@ -15,23 +15,34 @@ const LoginForm = () => {
     },
     onSubmit: (values) => {
       console.log("form data", values);
-      //values.otp=Number(value.otp)
-      dispatch(signin(values))
+
+      const loginPayload = {
+        email: values.email,
+        otp: Number(values.otp), // convert otp to number
+      };
+
+      dispatch(signin(loginPayload));
     },
   });
 
   const handleSendOtp = () => {
-  dispatch(sendLoginSignupOtp({ email: formik.values.email }));  // Add role here
-};
+    if (!formik.values.email.trim()) {
+      alert("Please enter your email first");
+      return;
+    }
+    dispatch(sendLoginSignupOtp({ email: formik.values.email }));
+  };
 
   return (
     <div>
-      <h1 className='text-center font-bold text-xl text-primary-color pb-8'>
+      <h1 className="text-center font-bold text-xl text-primary-color pb-8">
         Login
-        </h1>
+      </h1>
 
-        <form onSubmit={formik.handleSubmit}>
-          <div className="space-y-5">
+      <form onSubmit={formik.handleSubmit}>
+        <div className="space-y-5">
+
+          {/* EMAIL */}
           <TextField
             fullWidth
             name="email"
@@ -43,11 +54,13 @@ const LoginForm = () => {
             helperText={formik.touched?.email && formik.errors?.email}
           />
 
+          {/* OTP FIELD (only show after OTP sent) */}
           {auth.otpSent && (
             <div className="space-y-2">
               <p className="font-medium text-sm opacity-60">
                 Enter OTP sent to your email
               </p>
+
               <TextField
                 fullWidth
                 name="otp"
@@ -61,30 +74,33 @@ const LoginForm = () => {
             </div>
           )}
 
+          {/* BUTTONS */}
           {!auth.otpSent ? (
-  <Button
-    onClick={handleSendOtp}
-    fullWidth
-    variant="contained"
-    sx={{ py: "11px" }}
-  >
-    {auth.loading ? <CircularProgress /> : "Send Otp"}
-  </Button>
-) : (
-  <Button 
-    type="submit"
-    fullWidth
-    variant="contained"
-    sx={{ py: "11px" }}
-  >
-    Login
-  </Button>
-)}
-        </div>
-        </form>
-        
-    </div>
-  )
-}
+            <Button
+              onClick={handleSendOtp}
+              fullWidth
+              variant="contained"
+              sx={{ py: "11px" }}
+              disabled={!formik.values.email} // disable if email empty
+            >
+              {auth.loading ? <CircularProgress size={22} /> : "Send Otp"}
+            </Button>
+          ) : (
+            <Button
+              type="submit"
+              fullWidth
+              variant="contained"
+              sx={{ py: "11px" }}
+              disabled={!formik.values.otp} // require otp
+            >
+              Login
+            </Button>
+          )}
 
-export default LoginForm
+        </div>
+      </form>
+    </div>
+  );
+};
+
+export default LoginForm;

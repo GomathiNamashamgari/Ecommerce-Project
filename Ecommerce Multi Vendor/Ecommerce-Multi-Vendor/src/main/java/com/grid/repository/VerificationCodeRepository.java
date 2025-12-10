@@ -12,6 +12,8 @@ import java.util.List;
 public interface VerificationCodeRepository extends JpaRepository<VerificationCode,Long> {
 
     List<VerificationCode> findAllByEmail(String email);
+    VerificationCode findByEmail(String email);
+
 
     @Modifying
     @Transactional

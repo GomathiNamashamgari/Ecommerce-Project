@@ -1,6 +1,6 @@
 import { Button, FormControlLabel, Modal, Radio, RadioGroup,Grid, Box } from "@mui/material";
 import { useState } from "react";
-import { useAppDispatch } from "../../../State/Store";
+import { useAppDispatch, useAppSelector } from "../../../State/Store";
 import { createOrder } from "../../../State/customer/OrderSlice";
 import PricingCard from "../Cart/PricingCard";
 import AddressForm from "./AddressForm";
@@ -38,8 +38,17 @@ const AddressCard = ({ address, selected, onSelect }: any) => (
 );
 
 const Checkout = () => {
+  const { cart } = useAppSelector(store => store);
   const dispatch = useAppDispatch();
 
+  const subtotal = cart.cart?.cartItems.reduce(
+  (acc, item) => acc + item.product.sellingPrice * item.quantity,
+  0
+) || 0;
+
+const discount = cart.cart?.discount || 0;
+const shipping = cart.cart?.shipping || 60;
+const platformFee = cart.cart?.platformFee || "Free";
   const [open, setOpen] = useState(false);
   const [addresses, setAddresses] = useState<any[]>([]);
   const [selectedAddress, setSelectedAddress] = useState<any>(null);
@@ -128,7 +137,13 @@ const Checkout = () => {
             </div>
 
             <div className="border rounded-md mt-4">
-              <PricingCard />
+              <PricingCard
+  subtotal={subtotal}
+  discount={discount}
+  shipping={shipping}
+  platformFee={platformFee}
+/>
+
               <div className="p-5">
                 <Button fullWidth variant="contained" sx={{ py: "11px" }} onClick={handleCheckout}>
                   CHECKOUT
