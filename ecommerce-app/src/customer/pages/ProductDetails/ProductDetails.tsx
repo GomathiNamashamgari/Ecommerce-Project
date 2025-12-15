@@ -7,12 +7,13 @@ import FavoriteBorder from '@mui/icons-material/FavoriteBorder';
 import SimilarProduct from './SimilarProduct';
 import ReviewCard from '../Review/ReviewCard';
 import store, { useAppDispatch, useAppSelector } from '../../../State/Store';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { fetchProductById } from '../../../State/customer/ProductSlice';
 
 const ProductDetails = () => {
   const [quantity, setQuantity] = useState(1);
   const dispatch = useAppDispatch();
+  const navigate = useNavigate();
   const {  productId } = useParams<{  productId: string }>();
   const [activeImage, setActiveImage] = useState(0);
   const product = useAppSelector(store => store.product.product);
@@ -131,10 +132,14 @@ const ProductDetails = () => {
             <p>{product?.description}</p>
           </div>
 
-          <div className='mt-12 space-y-5'>
-            <ReviewCard />
-            <Divider />
-          </div>
+          <div className='mt-12'>
+  <Button
+    variant="outlined"
+    onClick={() => navigate(`/reviews/${productId}`)}
+  >
+    View All Reviews
+  </Button>
+</div>
 
         </section>
       </div>

@@ -100,15 +100,30 @@ public class AuthServiceImpl implements AuthService {
 
         verificationCodeRepository.delete(verificationCode);
 
-        // Use email as principal (string), not the object
-        List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_USER"));
+        // ------------------------
+        // 🔹 ROLE BASED ON EMAIL
+        // ------------------------
+        USER_ROLE role;
+        if (req.getEmail().equalsIgnoreCase("admin@grid.com")) {
+            role = USER_ROLE.ROLE_ADMIN;
+        } else {
+            try {
+                if (sellerService.getSellerByEmail(req.getEmail()) != null) {
+                    role = USER_ROLE.ROLE_SELLER;
+                } else {
+                    role = USER_ROLE.ROLE_USER;
+                }
+            } catch (Exception e) {
+                role = USER_ROLE.ROLE_USER;
+            }
+        }
+
+        List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(role.name()));
         Authentication authentication = new UsernamePasswordAuthenticationToken(req.getEmail(), null, authorities);
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
         return jwtProvider.generateToken(authentication);
     }
-
-
 
     // -------------------------------------------------------
     // LOGIN (OTP)
@@ -128,8 +143,9 @@ public class AuthServiceImpl implements AuthService {
         if (user == null) {
             user = new User();
             user.setEmail(email);
-            user.setFullName("Guest User"); // or from request if available
+            user.setFullName(""); // or from request if available
             user.setMobile("");
+            user.setPassword("");
             user = userRepository.save(user);
 
             // Create cart for new user
@@ -145,12 +161,17 @@ public class AuthServiceImpl implements AuthService {
         authResponse.setJwt(token);
         authResponse.setMessage("Login successful via OTP");
 
-        authResponse.setRole(USER_ROLE.ROLE_USER);
+        // ------------------------
+        // 🔹 ROLE FROM AUTH
+        // ------------------------
+        authResponse.setRole(
+                USER_ROLE.valueOf(
+                        authentication.getAuthorities().iterator().next().getAuthority()
+                )
+        );
 
         return authResponse;
     }
-
-
 
     // -------------------------------------------------------
     // INTERNAL OTP AUTH
@@ -168,19 +189,30 @@ public class AuthServiceImpl implements AuthService {
             throw new BadCredentialsException("Invalid OTP");
         }
 
-        // Delete the used OTP
         verificationCodeRepository.delete(code);
 
-        // Always allow login, even if user/seller not registered
-        USER_ROLE role = USER_ROLE.ROLE_USER; // default role for unknown emails
+        // ------------------------
+        // 🔹 ROLE BASED ON EMAIL
+        // ------------------------
+        USER_ROLE role;
+        if (email.equalsIgnoreCase("gridstore724@gmail.com")) {
+            role = USER_ROLE.ROLE_ADMIN;
+        } else {
+            try {
+                if (sellerService.getSellerByEmail(email) != null) {
+                    role = USER_ROLE.ROLE_SELLER;
+                } else {
+                    role = USER_ROLE.ROLE_USER;
+                }
+            } catch (Exception e) {
+                role = USER_ROLE.ROLE_USER;
+            }
+        }
 
-        Collection<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(role.toString()));
+        Collection<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(role.name()));
 
-        log.info("OTP validated for {}: received={}, expected={}", email, otp, code.getOtp());
+        log.info("OTP validated for {}: role={}", email, role);
 
-        // Use email as principal
         return new UsernamePasswordAuthenticationToken(email, null, authorities);
     }
-
-
 }

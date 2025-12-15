@@ -6,9 +6,11 @@ import adminSlice from "./admin/adminSlice";
 import DealSlice from "./admin/DealSlice";
 import AuthSlice from "./AuthSlice";
 import CartSlice from "./customer/CartSlice";
+import CouponSlice from "./customer/CouponSlice";
 import CustomerSlice from "./customer/CustomerSlice";
 import OrderSlice from "./customer/OrderSlice";
 import ProductSlice from "./customer/ProductSlice";
+import ReviewSlice from "./customer/ReviewSlice";
 import WishlistSlice from "./customer/WishlistSlice";
 import sellerOrderSlice from "./seller/sellerOrderSlice";
 import sellerProductSlice from "./seller/sellerProductSlice";
@@ -26,6 +28,8 @@ const rootReducer=combineReducers({
     order: OrderSlice,
     wishlist: WishlistSlice,
     customer:CustomerSlice,
+    reviews:ReviewSlice,
+    coupons:CouponSlice,
 
     sellerOrder: sellerOrderSlice,
     transaction: transactionSlice,

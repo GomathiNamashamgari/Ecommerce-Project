@@ -1,12 +1,24 @@
 import { Button, TextField, CircularProgress } from '@mui/material';
 import { useFormik } from 'formik';
-import React from 'react';
+import React, { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { sendLoginSignupOtp, signin } from '../../../State/AuthSlice';
 import { useAppDispatch, useAppSelector } from '../../../State/Store';
 
 const LoginForm = () => {
   const dispatch = useAppDispatch();
+  const navigate = useNavigate();
   const { auth } = useAppSelector((store) => store);
+
+  useEffect(() => {
+    if (auth.isLoggedIn && auth.user) {
+      if (auth.user.role === "ROLE_ADMIN") {
+        navigate("/admin");
+      } else {
+        navigate("/");
+      }
+    }
+  }, [auth.isLoggedIn, auth.user, navigate]);
 
   const formik = useFormik({
     initialValues: {

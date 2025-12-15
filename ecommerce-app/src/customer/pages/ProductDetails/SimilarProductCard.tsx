@@ -1,46 +1,52 @@
-import React from 'react'
+import React from "react";
 
-const SimilarProductCard = () => {
-  return (
-    <div><div className='group px-4 relative'>
-        <div className='card'
-            
-            >
-            <img 
-            className='card-media object-top'
-            src={"https://m.media-amazon.com/images/I/81DEE+ytZ6L._SY879_.jpg"} 
-            alt="" 
-        
-            />
-
-              
-            
-        </div>
-        <div className='details pt-3 space-y-1 group-hover-effect rounded-md'>
-            <div className='name'>
-                <h1>Elite Weaves Store</h1>
-                <p>  Maharashtrian Chandrakor Swan Paithani Silk Zari Woven Saree  
-                    </p>
-
-            </div>
-            <div className='price flex items-center gap-3'>
-
-                <span className='font-sans text-gray-800'>
-                    ₹ 1910
-                </span>
-                <span className='line-through text-gray-400'>
-                    ₹ 6998
-                </span>
-                <span className='text-primary-color font-semibold'>
-                    73%
-                </span>
-
-            </div>
-
-        </div>
-
-    </div></div>
-  )
+interface SimilarProductCardProps {
+  product: any;
+  onClick: () => void;
 }
 
-export default SimilarProductCard
+const SimilarProductCard: React.FC<SimilarProductCardProps> = ({
+  product,
+  onClick,
+}) => {
+  return (
+    <div
+      onClick={onClick}
+      className="cursor-pointer border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition bg-white"
+    >
+      {/* IMAGE */}
+      <img
+        src={product?.images?.[0]}
+        alt={product?.title}
+        className="w-full h-[260px] object-cover"
+      />
+
+      {/* DETAILS */}
+      <div className="p-3 space-y-1">
+        <h3 className="text-sm font-semibold truncate">
+          {product?.seller?.businessDetails?.businessName}
+        </h3>
+
+        <p className="text-sm text-gray-600 truncate">
+          {product?.title}
+        </p>
+
+        <div className="flex items-center gap-2">
+          <span className="font-bold text-gray-800">
+            ₹{product?.sellingPrice}
+          </span>
+
+          <span className="line-through text-gray-400 text-sm">
+            ₹{product?.mrpPrice}
+          </span>
+
+          <span className="text-primary-color text-sm font-semibold">
+            {product?.discountPercent}%
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default SimilarProductCard;

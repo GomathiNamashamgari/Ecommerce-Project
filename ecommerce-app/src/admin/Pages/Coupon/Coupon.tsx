@@ -1,138 +1,73 @@
-import { Button, FormControl, InputLabel, MenuItem, Paper, Select, Table, TableBody, TableCell, tableCellClasses, TableContainer, TableHead, TableRow } from "@mui/material";
-import React, { useState } from "react";
-import { styled } from "@mui/material/styles";
+import {
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  IconButton,
+} from "@mui/material";
 import { Delete } from "@mui/icons-material";
+import { useEffect } from "react";
+import { styled } from "@mui/material/styles";
+import { useAppDispatch, useAppSelector } from "../../../State/Store";
+import { deleteCoupon, getAllCoupons } from "../../../State/customer/CouponSlice";
+import { Coupon } from "../../../types/CouponTypes";
 
-const StyledTableCell = styled(TableCell)(({ theme  }) => ({
-  [`&.${tableCellClasses.head}`]: {
-    backgroundColor: theme.palette.common.black,
-    color: theme.palette.common.white,
-  },
-  [`&.${tableCellClasses.body}`]: {
-    fontSize: 14,
-  },
+
+const StyledHeadCell = styled(TableCell)(({ theme }) => ({
+  backgroundColor: theme.palette.common.black,
+  color: theme.palette.common.white,
 }));
 
-const StyledTableRow = styled(TableRow)(({ theme }) => ({
-  '&:nth-of-type(odd)': {
-    backgroundColor: theme.palette.action.hover,
-  },
-  // hide last border
-  '&:last-child td, &:last-child th': {
-    border: 0,
-  },
-}));
+const CouponTable = () => {
+  const dispatch = useAppDispatch();
+  const { coupons } = useAppSelector((store) => store.coupons);
+  const jwt = localStorage.getItem("jwt") || "";
 
-function createData(
-  name: string,
-  calories: number,
-  fat: number,
-  carbs: number,
-  protein: number,
-) {
-  return { name, calories, fat, carbs, protein };
-}
+  useEffect(() => {
+    dispatch(getAllCoupons(jwt));
+  }, [dispatch, jwt]);
 
-const rows = [
-  createData('Frozen yoghurt', 159, 6.0, 24, 4.0),
-  createData('Ice cream sandwich', 237, 9.0, 37, 4.3),
-  createData('Eclair', 262, 16.0, 24, 6.0),
-  createData('Cupcake', 305, 3.7, 67, 4.3),
-  createData('Gingerbread', 356, 16.0, 49, 3.9),
-];
-
-const accountStatu = [
-  {
-    status: "PENDING_VERIFICATION",
-    title: "Pending Verification",
-    description: "Account is pending verification",
-  },
-  {
-    status: "ACTIVE",
-    title: "Active",
-    description: "Account is active and good status",
-  },
-  {
-    status: "SUSPENDED",
-    title: "Suspended",
-    description: "Account is temporarily suspended",
-  },
-  {
-    status: "DEACTIVATED",
-    title: "Deactivited",
-    description: "Account is deactivited",
-  },
-  {
-    status: "BANNED",
-    title: "Banned",
-    description: "Account is permanently banned",
-  },
-  {
-    status: "CLOSED",
-    title: "Closed",
-    description: "Account is permanently closed",
-  },
-];
-
-const Coupon = () => {
-  const [accountStatus, setAccountStatus] = useState("ACTIVE");
-  const handleChange = (event: any) => {
-    setAccountStatus(event.target.value);
+  const handleDelete = (id: number) => {
+    dispatch(deleteCoupon({ id, jwt }));
   };
-  return (
-    <>
-     {/* <div className="pb-5 w-60">
-      <FormControl fullWidth>
-        <InputLabel id="demo-simple-select-label">Account Status</InputLabel>
-        <Select
-          labelId="demo-simple-select-label"
-          id="demo-simple-select"
-          value={accountStatus}
-          label="Account Status"
-          onChange={handleChange}
-        >
-          {accountStatu.map((item) => (
-            <MenuItem value={item.status}>{item.title}</MenuItem>
-          ))}
-        </Select>
-      </FormControl>
-    </div> */}
 
+  return (
     <TableContainer component={Paper}>
-      <Table sx={{ minWidth: 700 }} aria-label="customized table">
+      <Table>
         <TableHead>
           <TableRow>
-            <StyledTableCell>Coupon Code</StyledTableCell>
-            <StyledTableCell>Start Date</StyledTableCell>
-            <StyledTableCell align="right">End Date</StyledTableCell>
-            <StyledTableCell align="right">Min Order Value</StyledTableCell>
-            <StyledTableCell align="right">Discount %</StyledTableCell>
-            {/* <StyledTableCell align="right">Status</StyledTableCell> */}
-            <StyledTableCell align="right">Delete</StyledTableCell>
+            <StyledHeadCell>Code</StyledHeadCell>
+            <StyledHeadCell>Start Date</StyledHeadCell>
+            <StyledHeadCell>End Date</StyledHeadCell>
+            <StyledHeadCell>Min Order</StyledHeadCell>
+            <StyledHeadCell>Discount %</StyledHeadCell>
+            <StyledHeadCell align="right">Delete</StyledHeadCell>
           </TableRow>
         </TableHead>
+
         <TableBody>
-          {rows.map((row) => (
-            <StyledTableRow key={row.name}>
-              <StyledTableCell component="th" scope="row">
-                {row.name}
-              </StyledTableCell>
-              <StyledTableCell >{row.calories}</StyledTableCell>
-              <StyledTableCell align="right">{row.fat}</StyledTableCell>
-              <StyledTableCell align="right">{row.carbs}</StyledTableCell>
-              <StyledTableCell align="right">{row.protein}</StyledTableCell>
-              {/* <StyledTableCell align="right">{row.carbs}</StyledTableCell> */}
-              <StyledTableCell align="right">
-                <Delete />
-              </StyledTableCell>
-            </StyledTableRow>
+          {coupons.map((coupon: Coupon) => (
+            <TableRow key={coupon.id}>
+              <TableCell>{coupon.code}</TableCell>
+              <TableCell>{coupon.validityStartDate}</TableCell>
+              <TableCell>{coupon.validityEndDate}</TableCell>
+              <TableCell>{coupon.minimumOrderValue}</TableCell>
+              <TableCell>{coupon.discountPercentage}%</TableCell>
+              <TableCell align="right">
+                <IconButton onClick={() => handleDelete(coupon.id)}>
+                  <Delete color="error" />
+                </IconButton>
+              </TableCell>
+            </TableRow>
           ))}
         </TableBody>
       </Table>
     </TableContainer>
-    </>
-   
   );
 };
 
-export default Coupon;
+export default CouponTable;
+

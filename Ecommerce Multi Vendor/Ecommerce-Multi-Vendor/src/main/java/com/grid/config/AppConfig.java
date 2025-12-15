@@ -44,9 +44,12 @@ public class AppConfig {
                 .addFilterBefore(jwtTokenValidator, UsernamePasswordAuthenticationFilter.class)  // Add filter early
                 .authorizeHttpRequests(auth -> auth
                         // Public
-                        .requestMatchers("/auth/**", "/sellers/login", "/sellers/signup", "/sellers/verify/**", "/products/**", "/home/**", "/payment-success/**", "/{path:[^\\.]*}").permitAll()
+                        .requestMatchers("/auth/**","/admin/**", "/seller/**", "/sellers/login", "/sellers/signup", "/sellers/verify/**", "/products/**","/reviews/**", "/home/**", "/payment-success/**", "/{path:[^\\.]*}").permitAll()
+
+                        .requestMatchers("/admin/**", "/seller/**", "/account/**", "/cart", "/wishlist", "/checkout").permitAll()
+
                         // Protected
-                        .requestMatchers("/admin/**").hasRole("ADMIN")
+                        //.requestMatchers("/admin/**").hasRole("ADMIN")
                         .requestMatchers("/sellers/profile").hasRole("SELLER")
                         .requestMatchers(HttpMethod.POST, "/sellers/products").hasRole("SELLER")
                         .requestMatchers(HttpMethod.PUT, "/sellers/products/**").hasRole("SELLER")

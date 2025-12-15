@@ -1,19 +1,38 @@
-import React from 'react'
-import Products from '../../../seller/pages/Products/Products'
-import Product from '../Product/Product'
-import SimilarProductCard from './SimilarProductCard'
+import React, { useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { useAppDispatch, useAppSelector } from "../../../State/Store";
+import { fetchAllProducts } from "../../../State/customer/ProductSlice";
+import SimilarProductCard from "./SimilarProductCard";
 
 const SimilarProduct = () => {
+  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
+  const { productId } = useParams<{ productId: string }>();
+
+  const products = useAppSelector(
+    (store) => store.product.products
+  );
+
+  useEffect(() => {
+    dispatch(fetchAllProducts({}));
+  }, [dispatch]);
+
+  // remove current product
+  const filteredProducts = products?.filter(
+    (p: any) => p.id !== Number(productId)
+  );
+
   return (
-    <div className='grid lg:grid-cols-6 md:grid-cols-4 sm:grid-cols-2 grid-cols-1 justify-between gap-4 gap-y-8'>
-
-        {[1,2,3,4,5,6].map((item, index) => (
-  <SimilarProductCard key={index} />
-))}
-
-
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
+      {filteredProducts?.slice(0, 6).map((item: any) => (
+        <SimilarProductCard
+          key={item.id}
+          product={item}
+          onClick={() => navigate(`/product-details/${item.id}`)}
+        />
+      ))}
     </div>
-  )
-}
+  );
+};
 
-export default SimilarProduct
+export default SimilarProduct;

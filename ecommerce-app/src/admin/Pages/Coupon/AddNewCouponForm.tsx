@@ -1,10 +1,12 @@
 import { LocalizationProvider } from "@mui/x-date-pickers";
-import { Dayjs } from "dayjs";
-import { useFormik } from "formik";
-import React from "react";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import { Box, Button, Grid, TextField } from "@mui/material";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+import { Box, Button, Grid, TextField } from "@mui/material";
+import { useFormik } from "formik";
+import dayjs, { Dayjs } from "dayjs";
+import { useEffect, useState } from "react";
+import { useAppDispatch, useAppSelector } from "../../../State/Store";
+import { createCoupon, resetCouponState } from "../../../State/customer/CouponSlice";
 
 interface CouponFormValues {
   code: string;
@@ -15,6 +17,11 @@ interface CouponFormValues {
 }
 
 const AddNewCouponForm = () => {
+  const dispatch = useAppDispatch();
+  const { coupons} = useAppSelector(store => store);
+  const jwt = localStorage.getItem("jwt") || "";
+   const [loading, setLoading] = useState(false)
+
   const formik = useFormik<CouponFormValues>({
     initialValues: {
       code: "",
@@ -23,81 +30,104 @@ const AddNewCouponForm = () => {
       validityEndDate: null,
       minimumOrderValue: 0,
     },
-    onSubmit: (values) => {
-      console.log("form submited", values);
-      const formatedvalues = {
-        ...values,
-        validityStartDate: values.validityStartDate?.toISOString(),
-        validityEndDate: values.validityEndDate?.toISOString(),
+    onSubmit: (values, { resetForm }) => {
+      const payload = {
+        code: values.code,
+        discountPercentage: values.discountPercentage,
+        validityStartDate: dayjs(values.validityStartDate).toISOString(),
+        validityEndDate: dayjs(values.validityEndDate).toISOString(),
+        minimumOrderValue: values.minimumOrderValue,
+        active: true,
       };
-      console.log("form submited", values, formatedvalues);
+
+      dispatch(createCoupon({ coupon: payload as any, jwt }));
+      resetForm();
     },
   });
+
+  useEffect(() => {
+    if (coupons) {
+      dispatch(resetCouponState());
+    }
+  }, [coupons, dispatch]);
+
   return (
     <div>
-        <h1 className="text-2xl font-bold text-primary-color pb-5 text-center">Create New Coupon</h1>
+      <h1 className="text-2xl font-bold text-primary-color pb-5 text-center">
+        Create New Coupon
+      </h1>
+
       <LocalizationProvider dateAdapter={AdapterDayjs}>
-        <Box component={"form"} onSubmit={formik.handleSubmit} sx={{ mt: 3 }}>
+        <Box component="form" onSubmit={formik.handleSubmit}>
           <Grid container spacing={2}>
-            <Grid size={{ xs: 12, sm: 6 }}>
+            <Grid size={12} >
               <TextField
                 fullWidth
-                name="code"
                 label="Coupon Code"
+                name="code"
                 value={formik.values.code}
                 onChange={formik.handleChange}
-                error={formik.touched.code && Boolean(formik.errors.code)}
-                helperText={formik.touched.code && formik.errors.code}
+                required
               />
             </Grid>
-            <Grid size={{ xs: 12, sm: 6 }}>
+
+            <Grid size={12}>
               <TextField
                 fullWidth
+                type="number"
+                label="Discount %"
                 name="discountPercentage"
-                label="Disciunt %"
                 value={formik.values.discountPercentage}
                 onChange={formik.handleChange}
-                error={formik.touched.discountPercentage && Boolean(formik.errors.discountPercentage)}
-                helperText={formik.touched.discountPercentage && formik.errors.discountPercentage}
+                required
               />
             </Grid>
-            <Grid size={{ xs: 12, sm: 6 }}>
+
+            <Grid size={12} >
               <DatePicker
-              sx={{width:"100%"}}
-              label="Validity Start Date"
-              name="validityStartDate"
-              onChange={formik.handleChange}
-              value={formik.values.validityStartDate}
+                label="Start Date"
+                value={formik.values.validityStartDate}
+                onChange={(value) =>
+                  formik.setFieldValue("validityStartDate", value)
+                }
+                sx={{ width: "100%" }}
               />
             </Grid>
-             <Grid size={{ xs: 12, sm: 6 }}>
+
+            <Grid size={12} >
               <DatePicker
-              sx={{width:"100%"}}
-              label="Validity End Date"
-              name="validityEndDate"
-              onChange={formik.handleChange}
-              value={formik.values.validityEndDate}
+                label="End Date"
+                value={formik.values.validityEndDate}
+                onChange={(value) =>
+                  formik.setFieldValue("validityEndDate", value)
+                }
+                sx={{ width: "100%" }}
               />
             </Grid>
-            <Grid size={{ xs: 12 }}>
+
+            <Grid size={12}>
               <TextField
                 fullWidth
-                name="minimumOrderValue"
+                type="number"
                 label="Minimum Order Value"
+                name="minimumOrderValue"
                 value={formik.values.minimumOrderValue}
                 onChange={formik.handleChange}
-                error={formik.touched.minimumOrderValue && Boolean(formik.errors.minimumOrderValue)}
-                helperText={formik.touched.minimumOrderValue && formik.errors.minimumOrderValue}
+                required
               />
             </Grid>
-            
-            <Grid size={{xs:12}}>
-                <Button variant="contained" fullWidth sx={{py:".8rem"}}>
-                    Create Coupon
-                </Button>
 
+            <Grid size={12}>
+              <Button
+                type="submit"
+                variant="contained"
+                fullWidth
+                disabled={loading}
+                sx={{ py: 1 }}
+              >
+                Create Coupon
+              </Button>
             </Grid>
-
           </Grid>
         </Box>
       </LocalizationProvider>

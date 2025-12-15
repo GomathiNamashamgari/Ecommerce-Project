@@ -1,13 +1,23 @@
 import { Button, TextField } from "@mui/material";
 import { useFormik } from "formik";
-import React from "react";
+import React, { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { sendLoginSignupOtp, signin } from "../../../State/AuthSlice";
 import { sellerLogin } from "../../../State/seller/sellerAuthSlice";
-import { useAppDispatch } from "../../../State/Store";
+import { useAppDispatch, useAppSelector } from "../../../State/Store";
 // 👆 adjust the path if you defined the thunk inside sellerSlice.ts
 
 const SellerLoginForm = () => {
   const dispatch = useAppDispatch();
+  const navigate = useNavigate();
+
+  const { auth } = useAppSelector((store) => store);
+  const sellerAuth = useAppSelector((store) => store.seller); // or store.sellerAuth
+
+  // Redirect to seller dashboard after successful login
+  useEffect(() => {
+    navigate("/seller")
+  })
 
   const formik = useFormik({
     initialValues: {
